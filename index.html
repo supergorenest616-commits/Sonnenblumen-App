@@ -170,6 +170,18 @@
         }
         .member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
         .btn-small-danger { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+        .btn-small-success { background: #2ec4b6; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; margin-right: 4px; }
+
+        /* Warteraum / Sperrbildschirm */
+        .pending-screen {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 2px solid #f4a261;
+            margin-top: 20px;
+        }
 
         /* Spiel-Bereich & Highscore Board */
         .game-section {
@@ -245,35 +257,51 @@
         </div>
     </header>
 
-    <div id="adminPanel" class="admin-panel" style="display: none;">
-        <h3 style="color: #e76f51; font-size: 0.95rem; margin-bottom: 8px;">⚙️ Admin-Verwaltung: Mitglieder (Echtzeit)</h3>
-        <div id="memberList"></div>
+    <!-- Warteraum Anzeige für ungenehmigte Konten -->
+    <div id="pendingContainer" class="pending-screen" style="display: none;">
+        <div style="font-size: 3rem; margin-bottom: 10px;">⏳</div>
+        <h2 style="color: #e76f51; font-size: 1.2rem; margin-bottom: 8px;">Warten auf Freigabe</h2>
+        <p style="font-size: 0.9rem; color: #4a4e69; line-height: 1.4;">
+            Hallo <strong id="pendingUserName"></strong>!<br>
+            Dein Konto wurde registriert und wartet auf die Freigabe durch die Einrichtungsleitung.
+        </p>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 15px;">
+            Sobald du freigeschaltet wirst, lädt diese Seite automatisch neu.
+        </p>
     </div>
 
-    <button class="btn" style="margin-bottom: 15px;" onclick="openCreatePostModal()">✍️ Einen Beitrag verfassen</button>
+    <!-- Hauptbereich (nur sichtbar wenn freigeschaltet) -->
+    <div id="mainContent">
+        <div id="adminPanel" class="admin-panel" style="display: none;">
+            <h3 style="color: #e76f51; font-size: 0.95rem; margin-bottom: 8px;">⚙️ Admin-Verwaltung: Mitglieder (Echtzeit)</h3>
+            <div id="memberList"></div>
+        </div>
 
-    <div class="filter-bar">
-        <div class="chip active" onclick="filterPosts('Haus Sonnenblume', this)">Haus Sonnenblume</div>
-        <div class="chip" onclick="filterPosts('WG 1', this)">WG 1</div>
-        <div class="chip" onclick="filterPosts('WG 2', this)">WG 2</div>
-        <div class="chip" onclick="filterPosts('WG 3', this)">WG 3</div>
-        <div class="chip" onclick="filterPosts('TFS', this)">TFS</div>
-    </div>
+        <button class="btn" style="margin-bottom: 15px;" onclick="openCreatePostModal()">✍️ Einen Beitrag verfassen</button>
 
-    <div id="postsContainer"></div>
+        <div class="filter-bar">
+            <div class="chip active" onclick="filterPosts('Haus Sonnenblume', this)">Haus Sonnenblume</div>
+            <div class="chip" onclick="filterPosts('WG 1', this)">WG 1</div>
+            <div class="chip" onclick="filterPosts('WG 2', this)">WG 2</div>
+            <div class="chip" onclick="filterPosts('WG 3', this)">WG 3</div>
+            <div class="chip" onclick="filterPosts('TFS', this)">TFS</div>
+        </div>
 
-    <div class="game-section">
-        <div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #e76f51; text-align: left;">🎮 Sonnenblumen-Jump</div>
-        <canvas id="gameCanvas"></canvas>
-        
-        <div class="highscore-board">
-            <div class="highscore-title">
-                <span>🏆 Top 10 Highscores</span>
-                <span style="font-size: 0.75rem; color: #888;">Echtzeit</span>
+        <div id="postsContainer"></div>
+
+        <div class="game-section">
+            <div style="font-size: 0.9rem; font-weight: bold; margin-bottom: 8px; color: #e76f51; text-align: left;">🎮 Sonnenblumen-Jump</div>
+            <canvas id="gameCanvas"></canvas>
+            
+            <div class="highscore-board">
+                <div class="highscore-title">
+                    <span>🏆 Top 10 Highscores</span>
+                    <span style="font-size: 0.75rem; color: #888;">Echtzeit</span>
+                </div>
+                <ol id="highscoreList" class="highscore-list">
+                    <li style="color: #888; text-align: center; padding: 5px;">Lädt Bestenliste...</li>
+                </ol>
             </div>
-            <ol id="highscoreList" class="highscore-list">
-                <li style="color: #888; text-align: center; padding: 5px;">Lädt Bestenliste...</li>
-            </ol>
         </div>
     </div>
 </div>
@@ -394,7 +422,7 @@
         const memberData = {
             name: name,
             areas: selectedAreas,
-            status: isAdmin ? 'Genehmigt' : 'Ausstehend',
+            status: isAdmin ? 'Genehmigt' : (currentUser && currentUser.status ? currentUser.status : 'Ausstehend'),
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         };
 
@@ -410,7 +438,7 @@
             });
         } else {
             db.collection("members").add(memberData).then(docRef => {
-                currentUser = { id: docRef.id, name: name, areas: selectedAreas, isAdmin: isAdmin };
+                currentUser = { id: docRef.id, name: name, areas: selectedAreas, isAdmin: isAdmin, status: memberData.status };
                 localStorage.setItem('sunflower_user', JSON.stringify(currentUser));
                 closeProfileModal();
                 updateUserUI();
@@ -429,6 +457,25 @@
                 localStorage.removeItem('sunflower_user');
                 currentUser = null;
                 location.reload();
+                return;
+            }
+
+            const data = doc.data();
+            currentUser.status = data.status || 'Ausstehend';
+            localStorage.setItem('sunflower_user', JSON.stringify(currentUser));
+
+            const mainContent = document.getElementById('mainContent');
+            const pendingContainer = document.getElementById('pendingContainer');
+
+            if (!currentUser.isAdmin && currentUser.status !== 'Genehmigt') {
+                // Zugriff verweigert -> Warteraum anzeigen
+                mainContent.style.display = 'none';
+                pendingContainer.style.display = 'block';
+                document.getElementById('pendingUserName').innerText = currentUser.name;
+            } else {
+                // Zugriff gewährt -> Hauptbereich anzeigen
+                mainContent.style.display = 'block';
+                pendingContainer.style.display = 'none';
             }
         });
     }
@@ -453,21 +500,38 @@
             if (!currentUser || !currentUser.isAdmin) return;
             const listDiv = document.getElementById('memberList');
             listDiv.innerHTML = '';
+            
             snapshot.forEach(doc => {
                 const m = doc.data();
+                const isPending = m.status === 'Ausstehend';
+                const statusBadge = isPending ? '<span style="color:#e76f51; font-weight:bold;"> [Ausstehend]</span>' : '';
+
+                const actionBtns = isPending ? `
+                    <button class="btn-small-success" onclick="approveMember('${doc.id}')">Freigeben</button>
+                    <button class="btn-small-danger" onclick="deleteMember('${doc.id}')">Ablehnen</button>
+                ` : `
+                    <button class="btn-small-danger" onclick="deleteMember('${doc.id}')">Entfernen</button>
+                `;
+
                 listDiv.innerHTML += `
                     <div class="member-item">
-                        <span><strong>${m.name}</strong> (${m.areas ? m.areas.join(', ') : ''})</span>
-                        <div>
-                            <button class="btn-small-danger" onclick="deleteMember('${doc.id}')">Entfernen</button>
-                        </div>
+                        <span><strong>${m.name}</strong> (${m.areas ? m.areas.join(', ') : ''})${statusBadge}</span>
+                        <div>${actionBtns}</div>
                     </div>
                 `;
             });
         });
     }
 
-    function deleteMember(id) { db.collection("members").doc(id).delete(); }
+    function approveMember(id) {
+        db.collection("members").doc(id).update({ status: 'Genehmigt' });
+    }
+
+    function deleteMember(id) { 
+        if (confirm("Möchtest du dieses Mitglied wirklich entfernen / ablehnen?")) {
+            db.collection("members").doc(id).delete(); 
+        }
+    }
 
     function togglePostModal(show) { document.getElementById('postModal').style.display = show ? 'flex' : 'none'; }
 
