@@ -5,16 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wohnhaus Infoboard 🌻</title>
     <style>
+        :root {
+            --bg-sky: #eaf4f8;
+            --bg-cloud: #fefae0;
+            --sun-yellow: #f4a261;
+            --sun-deep: #e76f51;
+            --leaf-green: #6b9080;
+            --text-dark: #2b2d42;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
         body {
-            background-color: #fcf9f2;
-            color: #333;
+            background: linear-gradient(180deg, #d8e2dc 0%, #fefae0 100%);
+            color: var(--text-dark);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -24,132 +34,224 @@
 
         .container {
             width: 100%;
-            max-width: 480px;
+            max-width: 500px;
         }
 
-        /* Header im Sonnenblumen-Stil */
+        /* Sanfter Anime-Header */
         header {
-            background: linear-gradient(135deg, #ffb703, #fb8500);
-            color: white;
+            background: linear-gradient(135deg, #e9c46a, #f4a261);
+            color: #2b2d42;
             padding: 20px;
-            border-radius: 16px;
+            border-radius: 20px;
             text-align: center;
-            box-shadow: 0 4px 12px rgba(251, 133, 0, 0.25);
-            margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(244, 162, 97, 0.25);
+            margin-bottom: 15px;
+            border: 2px solid #ffffff;
         }
 
         header h1 {
             font-size: 1.5rem;
+            margin-bottom: 4px;
+        }
+
+        .user-badge {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 6px;
+            font-weight: 600;
+        }
+
+        /* Modal / Onboarding Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            z-index: 1000;
+            padding: 20px;
         }
 
-        header p {
+        .modal {
+            background: #fffef7;
+            padding: 25px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 2px solid #f4a261;
+        }
+
+        .modal h2 {
+            color: #e76f51;
+            margin-bottom: 12px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
             font-size: 0.85rem;
-            opacity: 0.9;
-            margin-top: 4px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2b2d42;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 0.9rem;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #f0f7f4;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .checkbox-group label {
+            font-weight: normal;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: #6b9080;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 10px rgba(107, 144, 128, 0.3);
+        }
+
+        .btn-admin {
+            background: #e76f51;
+            margin-top: 10px;
         }
 
         /* Filter Tabs */
         .filter-bar {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             overflow-x: auto;
             padding-bottom: 10px;
             margin-bottom: 15px;
         }
 
         .chip {
-            background: white;
-            border: 1px solid #ffe0b2;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #e9c46a;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.8rem;
             white-space: nowrap;
-            color: #fb8500;
-            font-weight: 600;
+            color: #2b2d42;
             cursor: pointer;
+            font-weight: 500;
         }
 
         .chip.active {
-            background: #fb8500;
+            background: #f4a261;
             color: white;
+            border-color: #f4a261;
         }
 
-        /* Infoboard Karten */
+        /* Beiträge Cards */
         .card {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 15px;
             margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid #ffb703;
-        }
-
-        .card.urgent {
-            border-left-color: #e63946;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border-left: 5px solid #f4a261;
+            backdrop-filter: blur(5px);
         }
 
         .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-
-        .tag {
             font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: #fff3e0;
-            color: #d97706;
-            font-weight: bold;
+            color: #6c757d;
+            margin-bottom: 6px;
         }
 
         .card-title {
             font-size: 1rem;
             font-weight: bold;
-            color: #1e293b;
+            color: #2b2d42;
             margin-bottom: 6px;
         }
 
         .card-body {
-            font-size: 0.9rem;
-            color: #475569;
+            font-size: 0.88rem;
+            color: #4a4e69;
             line-height: 1.4;
         }
 
-        .card-footer {
-            font-size: 0.75rem;
-            color: #94a3b8;
-            margin-top: 10px;
-        }
-
-        /* Minispiel Sektion */
-        .game-section {
-            background: white;
+        /* Admin-Verwaltung */
+        .admin-panel {
+            background: #fff;
+            border: 2px dashed #e76f51;
             border-radius: 16px;
             padding: 15px;
-            margin-top: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            text-align: center;
+            margin-bottom: 15px;
         }
 
-        .game-title {
-            font-weight: bold;
-            color: #fb8500;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .btn-small-danger {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        /* Game Canvas */
+        .game-section {
+            background: #fffef7;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+            border: 1px solid #e9c46a;
         }
 
         #gameCanvas {
-            background: #fffbe6;
-            border-radius: 8px;
-            border: 2px solid #ffe0b2;
+            background: linear-gradient(180deg, #e0f2fe 0%, #fef3c7 100%);
+            border-radius: 10px;
             width: 100%;
             height: 120px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -158,112 +260,323 @@
 <div class="container">
     <header>
         <h1>🌻 Wohnhaus Infoboard</h1>
-        <p>Interne Mitteilungen & Updates</p>
+        <p>Ghibli-Style Infoseite & Übergabe</p>
+        <div id="userBadge" class="user-badge">Lädt Profil...</div>
     </header>
 
+    <!-- Admin Panel (nur sichtbar für Admin) -->
+    <div id="adminPanel" class="admin-panel" style="display: none;">
+        <h3 style="color: #e76f51; font-size: 0.95rem; margin-bottom: 8px;">⚙️ Admin-Verwaltung: Mitglieder</h3>
+        <div id="memberList"></div>
+    </div>
+
+    <!-- Neuer Beitrag Button -->
+    <button class="btn" style="margin-bottom: 15px;" onclick="togglePostModal(true)">✍️ Neuen Beitrag verfassen</button>
+
+    <!-- Filter -->
     <div class="filter-bar">
-        <div class="chip active">Alle</div>
-        <div class="chip">WG 1</div>
-        <div class="chip">WG 2</div>
-        <div class="chip">WG 3</div>
-        <div class="chip">TFS</div>
+        <div class="chip active" onclick="filterPosts('Alle', this)">Alle</div>
+        <div class="chip" onclick="filterPosts('WG 1', this)">WG 1</div>
+        <div class="chip" onclick="filterPosts('WG 2', this)">WG 2</div>
+        <div class="chip" onclick="filterPosts('WG 3', this)">WG 3</div>
+        <div class="chip" onclick="filterPosts('TFS', this)">TFS</div>
+        <div class="chip" onclick="filterPosts('Haus allgemein', this)">Haus allgemein</div>
     </div>
 
-    <div class="card urgent">
-        <div class="card-header">
-            <span class="tag" style="background:#ffe5e5; color:#e63946;">Urlaub / Vertretung</span>
-            <span style="font-size:0.75rem; color:#94a3b8;">WG 2</span>
-        </div>
-        <div class="card-title">Präsenzkraft im Urlaub (04. - 18. Aug)</div>
-        <div class="card-body">
-            Die Präsenzkraft ist im Urlaub. Bitte beachtet, dass die Mitarbeiter der WG 2 das Frühstückrichten in dieser Zeit selbst übernehmen.
-        </div>
-        <div class="card-footer">Erstellt am 27.07.2026 von Leitung</div>
-    </div>
+    <!-- Beiträge Container -->
+    <div id="postsContainer"></div>
 
-    <div class="card">
-        <div class="card-header">
-            <span class="tag">Allgemeine Info</span>
-            <span style="font-size:0.75rem; color:#94a3b8;">Alle Bereiche</span>
-        </div>
-        <div class="card-title">Hausmeister Abwesenheit</div>
-        <div class="card-body">
-            Der Hausmeister ist nächste Woche Dienstag ganztägig auf Fortbildung. Notfälle bitte direkt an die Einrichtungsleitung melden.
-        </div>
-        <div class="card-footer">Erstellt am 26.07.2026</div>
-    </div>
-
-    <!-- Dino-Style Minispiel -->
+    <!-- Minispiel -->
     <div class="game-section">
-        <div class="game-title">🎮 Pause? Sonnenblumen-Jump! (Tippen zum Springen)</div>
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #e76f51;">
+            🎮 Pause? Sonnenblumen-Jump (Tippe auf das Spiel zum Springen)
+        </div>
         <canvas id="gameCanvas"></canvas>
     </div>
 </div>
 
+<!-- Modal 1: Onboarding / Erstanmeldung -->
+<div id="onboardingModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h2>🌻 Willkommen im Team!</h2>
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Richte einmalig dein Profil ein, um die Beiträge deines Bereichs zu sehen.</p>
+
+        <div class="form-group">
+            <label>Dein Vorname:</label>
+            <input type="text" id="userNameInput" placeholder="z.B. Anna">
+        </div>
+
+        <div class="form-group">
+            <label>Deine Bereiche (Multiple Choice):</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" value="WG 1" class="area-check"> WG 1</label>
+                <label><input type="checkbox" value="WG 2" class="area-check"> WG 2</label>
+                <label><input type="checkbox" value="WG 3" class="area-check"> WG 3</label>
+                <label><input type="checkbox" value="TFS" class="area-check"> TFS</label>
+                <label><input type="checkbox" value="Haus allgemein" class="area-check"> Haus allgemein</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Bist du Admin / Leitung?</label>
+            <input type="password" id="adminPinInput" placeholder="Admin-PIN eingeben (optional)">
+            <small style="font-size: 0.7rem; color: #888;">Standard-PIN für Leitungen: 1234</small>
+        </div>
+
+        <button class="btn" onclick="saveProfile()">Profil speichern & Starten</button>
+    </div>
+</div>
+
+<!-- Modal 2: Beitrag verfassen -->
+<div id="postModal" class="modal-overlay" style="display: none;">
+    <div class="modal">
+        <h2>✍️ Beitrag schreiben</h2>
+        <div class="form-group">
+            <label>Titel / Thema:</label>
+            <input type="text" id="postTitle" placeholder="z. B. Dienstplan-Änderung">
+        </div>
+        <div class="form-group">
+            <label>Zielbereich:</label>
+            <select id="postTarget">
+                <option value="Alle">Alle Bereiche</option>
+                <option value="WG 1">WG 1</option>
+                <option value="WG 2">WG 2</option>
+                <option value="WG 3">WG 3</option>
+                <option value="TFS">TFS</option>
+                <option value="Haus allgemein">Haus allgemein</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Nachricht:</label>
+            <textarea id="postBody" rows="3" placeholder="Inhalt der Info..."></textarea>
+        </div>
+        <button class="btn" onclick="createPost()">Beitrag veröffentlichen</button>
+        <button class="btn btn-admin" style="background:#888;" onclick="togglePostModal(false)">Abbrechen</button>
+    </div>
+</div>
+
 <script>
-    // Einfaches Minispiel (Dino-Jump Spiel)
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    // System-Daten & Speicher
+    let currentUser = JSON.parse(localStorage.getItem('sunflower_user')) || null;
+    let posts = JSON.parse(localStorage.getItem('sunflower_posts')) || [
+        { id: 1, title: 'Willkommen in der App!', author: 'System', area: 'Haus allgemein', body: 'Hier findet ihr ab sofort alle Übergaben und Mitteilungen.', date: 'Heute' },
+        { id: 2, title: 'Frühstücks-Vertretung', author: 'Markus', area: 'WG 2', body: 'Präsenzkraft im Urlaub. WG 2 richtet das Frühstück selbst.', date: 'Gestern' }
+    ];
+    let members = JSON.parse(localStorage.getItem('sunflower_members')) || [
+        { name: 'Admin/Leitung', areas: ['Haus allgemein'], status: 'Genehmigt' },
+        { name: 'Test-Nutzer (Außenstehend)', areas: ['WG 1'], status: 'Ausstehend' }
+    ];
 
-    canvas.width = 400;
-    canvas.height = 120;
+    // Initialisierung
+    window.onload = function() {
+        if (!currentUser) {
+            document.getElementById('onboardingModal').style.display = 'flex';
+        } else {
+            updateUserUI();
+        }
+        renderPosts('Alle');
+        initGame();
+    };
 
-    let flowerY = 80;
-    let velocityY = 0;
-    let isJumping = false;
-    let obstacleX = 400;
-    let score = 0;
+    function saveProfile() {
+        const name = document.getElementById('userNameInput').value.trim();
+        const pin = document.getElementById('adminPinInput').value.trim();
+        const checkboxes = document.querySelectorAll('.area-check:checked');
+        const selectedAreas = Array.from(checkboxes).map(cb => cb.value);
 
-    function jump() {
-        if (!isJumping) {
-            velocityY = -9;
-            isJumping = true;
+        if (!name) { alert('Bitte gib deinen Vornamen ein!'); return; }
+        if (selectedAreas.length === 0) { alert('Bitte wähle mindestens einen Bereich aus!'); return; }
+
+        const isAdmin = (pin === "1234");
+
+        currentUser = { name: name, areas: selectedAreas, isAdmin: isAdmin };
+        localStorage.setItem('sunflower_user', JSON.stringify(currentUser));
+
+        // In Mitgliederliste eintragen
+        members.push({ name: name, areas: selectedAreas, status: isAdmin ? 'Genehmigt' : 'Ausstehend' });
+        localStorage.setItem('sunflower_members', JSON.stringify(members));
+
+        document.getElementById('onboardingModal').style.display = 'none';
+        updateUserUI();
+    }
+
+    function updateUserUI() {
+        document.getElementById('userBadge').innerText = `👤 ${currentUser.name} (${currentUser.areas.join(', ')}) ${currentUser.isAdmin ? '⭐ Admin' : ''}`;
+        
+        if (currentUser.isAdmin) {
+            document.getElementById('adminPanel').style.display = 'block';
+            renderAdminMembers();
         }
     }
 
-    // Touch & Klick Event zum Springen
-    window.addEventListener("touchstart", jump);
-    window.addEventListener("mousedown", jump);
-
-    function gameLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Boden zeichnen
-        ctx.fillStyle = "#8d6e63";
-        ctx.fillRect(0, 110, canvas.width, 10);
-
-        // Physik
-        flowerY += velocityY;
-        velocityY += 0.5; // Schwerkraft
-
-        if (flowerY >= 80) {
-            flowerY = 80;
-            isJumping = false;
-        }
-
-        // Sonnenblume zeichnen (Spieler)
-        ctx.font = "24px Arial";
-        ctx.fillText("🌻", 30, flowerY + 20);
-
-        // Hindernis bewegen
-        obstacleX -= 4;
-        if (obstacleX < -20) {
-            obstacleX = 400;
-            score++;
-        }
-
-        // Hindernis zeichnen (Zaun / Topf)
-        ctx.fillText("🪴", obstacleX, 100);
-
-        // Punktestand
-        ctx.fillStyle = "#fb8500";
-        ctx.font = "12px Arial";
-        ctx.fillText("Punkte: " + score, 330, 20);
-
-        requestAnimationFrame(gameLoop);
+    function renderAdminMembers() {
+        const listDiv = document.getElementById('memberList');
+        listDiv.innerHTML = '';
+        members.forEach((m, index) => {
+            listDiv.innerHTML += `
+                <div class="member-item">
+                    <span><strong>${m.name}</strong> (${m.areas.join(', ')}) - <em>${m.status}</em></span>
+                    <div>
+                        ${m.status === 'Ausstehend' ? `<button class="btn-small-danger" style="background:#6b9080;" onclick="approveMember(${index})">Genehmigen</button>` : ''}
+                        <button class="btn-small-danger" onclick="removeMember(${index})">Entfernen</button>
+                    </div>
+                </div>
+            `;
+        });
     }
 
-    gameLoop();
+    function approveMember(index) {
+        members[index].status = 'Genehmigt';
+        localStorage.setItem('sunflower_members', JSON.stringify(members));
+        renderAdminMembers();
+    }
+
+    function removeMember(index) {
+        members.splice(index, 1);
+        localStorage.setItem('sunflower_members', JSON.stringify(members));
+        renderAdminMembers();
+    }
+
+    // Beitrage-Logik
+    function togglePostModal(show) {
+        document.getElementById('postModal').style.display = show ? 'flex' : 'none';
+    }
+
+    function createPost() {
+        const title = document.getElementById('postTitle').value.trim();
+        const target = document.getElementById('postTarget').value;
+        const body = document.getElementById('postBody').value.trim();
+
+        if (!title || !body) { alert('Bitte Titel und Text eingeben!'); return; }
+
+        const newPost = {
+            id: Date.now(),
+            title: title,
+            author: currentUser.name,
+            area: target,
+            body: body,
+            date: 'Gerade eben'
+        };
+
+        posts.unshift(newPost);
+        localStorage.setItem('sunflower_posts', JSON.stringify(posts));
+        renderPosts('Alle');
+        togglePostModal(false);
+
+        document.getElementById('postTitle').value = '';
+        document.getElementById('postBody').value = '';
+    }
+
+    function renderPosts(filterArea) {
+        const container = document.getElementById('postsContainer');
+        container.innerHTML = '';
+
+        const filtered = posts.filter(p => filterArea === 'Alle' || p.area === filterArea || p.area === 'Alle');
+
+        filtered.forEach(p => {
+            container.innerHTML += `
+                <div class="card">
+                    <div class="card-header">
+                        <span style="font-weight:bold; color:#e76f51;">📌 ${p.area}</span>
+                        <span>${p.date} &bull; von ${p.author}</span>
+                    </div>
+                    <div class="card-title">${p.title}</div>
+                    <div class="card-body">${p.body}</div>
+                </div>
+            `;
+        });
+    }
+
+    function filterPosts(area, element) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        renderPosts(area);
+    }
+
+    // Minispiel mit echter Kollision & gezieltem Touch
+    function initGame() {
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = 400;
+        canvas.height = 120;
+
+        let flowerY = 80;
+        let velocityY = 0;
+        let isJumping = false;
+        let obstacleX = 400;
+        let score = 0;
+        let gameOver = false;
+
+        function jump(e) {
+            e.preventDefault(); // Verhindert Scrollen
+            if (gameOver) {
+                // Neustart bei Game Over
+                flowerY = 80; obstacleX = 400; score = 0; gameOver = false;
+                gameLoop();
+                return;
+            }
+            if (!isJumping) {
+                velocityY = -9;
+                isJumping = true;
+            }
+        }
+
+        // NUR Klicks auf den Canvas auslösen
+        canvas.addEventListener("touchstart", jump);
+        canvas.addEventListener("mousedown", jump);
+
+        function gameLoop() {
+            if (gameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Boden
+            ctx.fillStyle = "#6b9080";
+            ctx.fillRect(0, 105, canvas.width, 15);
+
+            // Bewegung Spieler
+            flowerY += velocityY;
+            velocityY += 0.5;
+
+            if (flowerY >= 75) {
+                flowerY = 75;
+                isJumping = false;
+            }
+
+            // Zeichne Sonnenblume
+            ctx.font = "24px Arial";
+            ctx.fillText("🌻", 30, flowerY + 20);
+
+            // Bewegung Hindernis
+            obstacleX -= 4;
+            if (obstacleX < -20) {
+                obstacleX = 400;
+                score++;
+            }
+
+            // Zeichne Hindernis
+            ctx.fillText("🪴", obstacleX, 95);
+
+            // Kollisionsprüfung (Sonnenblume trifft Topf)
+            if (obstacleX > 15 && obstacleX < 45 && flowerY > 55) {
+                gameOver = true;
+                ctx.fillStyle = "#e76f51";
+                ctx.font = "bold 16px Arial";
+                ctx.fillText("Game Over! Tippen für Neustart", 80, 60);
+                return;
+            }
+
+            // Punktestand
+            ctx.fillStyle = "#2b2d42";
+            ctx.font = "12px Arial";
+            ctx.fillText("Punkte: " + score, 320, 20);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    }
 </script>
 
 </body>
