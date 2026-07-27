@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wohnhaus Infoboard 🌻</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #fcf9f2;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* Header im Sonnenblumen-Stil */
+        header {
+            background: linear-gradient(135deg, #ffb703, #fb8500);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(251, 133, 0, 0.25);
+            margin-bottom: 20px;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-top: 4px;
+        }
+
+        /* Filter Tabs */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chip {
+            background: white;
+            border: 1px solid #ffe0b2;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            color: #fb8500;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .chip.active {
+            background: #fb8500;
+            color: white;
+        }
+
+        /* Infoboard Karten */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 5px solid #ffb703;
+        }
+
+        .card.urgent {
+            border-left-color: #e63946;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #fff3e0;
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 6px;
+        }
+
+        .card-body {
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.4;
+        }
+
+        .card-footer {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+
+        /* Minispiel Sektion */
+        .game-section {
+            background: white;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .game-title {
+            font-weight: bold;
+            color: #fb8500;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        #gameCanvas {
+            background: #fffbe6;
+            border-radius: 8px;
+            border: 2px solid #ffe0b2;
+            width: 100%;
+            height: 120px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>🌻 Wohnhaus Infoboard</h1>
+        <p>Interne Mitteilungen & Updates</p>
+    </header>
+
+    <div class="filter-bar">
+        <div class="chip active">Alle</div>
+        <div class="chip">WG 1</div>
+        <div class="chip">WG 2</div>
+        <div class="chip">WG 3</div>
+        <div class="chip">TFS</div>
+    </div>
+
+    <div class="card urgent">
+        <div class="card-header">
+            <span class="tag" style="background:#ffe5e5; color:#e63946;">Urlaub / Vertretung</span>
+            <span style="font-size:0.75rem; color:#94a3b8;">WG 2</span>
+        </div>
+        <div class="card-title">Präsenzkraft im Urlaub (04. - 18. Aug)</div>
+        <div class="card-body">
+            Die Präsenzkraft ist im Urlaub. Bitte beachtet, dass die Mitarbeiter der WG 2 das Frühstückrichten in dieser Zeit selbst übernehmen.
+        </div>
+        <div class="card-footer">Erstellt am 27.07.2026 von Leitung</div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span class="tag">Allgemeine Info</span>
+            <span style="font-size:0.75rem; color:#94a3b8;">Alle Bereiche</span>
+        </div>
+        <div class="card-title">Hausmeister Abwesenheit</div>
+        <div class="card-body">
+            Der Hausmeister ist nächste Woche Dienstag ganztägig auf Fortbildung. Notfälle bitte direkt an die Einrichtungsleitung melden.
+        </div>
+        <div class="card-footer">Erstellt am 26.07.2026</div>
+    </div>
+
+    <!-- Dino-Style Minispiel -->
+    <div class="game-section">
+        <div class="game-title">🎮 Pause? Sonnenblumen-Jump! (Tippen zum Springen)</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+</div>
+
+<script>
+    // Einfaches Minispiel (Dino-Jump Spiel)
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 400;
+    canvas.height = 120;
+
+    let flowerY = 80;
+    let velocityY = 0;
+    let isJumping = false;
+    let obstacleX = 400;
+    let score = 0;
+
+    function jump() {
+        if (!isJumping) {
+            velocityY = -9;
+            isJumping = true;
+        }
+    }
+
+    // Touch & Klick Event zum Springen
+    window.addEventListener("touchstart", jump);
+    window.addEventListener("mousedown", jump);
+
+    function gameLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Boden zeichnen
+        ctx.fillStyle = "#8d6e63";
+        ctx.fillRect(0, 110, canvas.width, 10);
+
+        // Physik
+        flowerY += velocityY;
+        velocityY += 0.5; // Schwerkraft
+
+        if (flowerY >= 80) {
+            flowerY = 80;
+            isJumping = false;
+        }
+
+        // Sonnenblume zeichnen (Spieler)
+        ctx.font = "24px Arial";
+        ctx.fillText("🌻", 30, flowerY + 20);
+
+        // Hindernis bewegen
+        obstacleX -= 4;
+        if (obstacleX < -20) {
+            obstacleX = 400;
+            score++;
+        }
+
+        // Hindernis zeichnen (Zaun / Topf)
+        ctx.fillText("🪴", obstacleX, 100);
+
+        // Punktestand
+        ctx.fillStyle = "#fb8500";
+        ctx.font = "12px Arial";
+        ctx.fillText("Punkte: " + score, 330, 20);
+
+        requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+</script>
+
+</body>
+</html>
