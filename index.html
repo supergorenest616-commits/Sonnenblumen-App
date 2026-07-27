@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wohnhaus Infoboard 🌻</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
-            --bg-sky: #eaf4f8;
-            --bg-cloud: #fefae0;
+            --bg-cloud: rgba(254, 250, 224, 0.85);
             --sun-yellow: #f4a261;
             --sun-deep: #e76f51;
             --leaf-green: #6b9080;
             --text-dark: #2b2d42;
-            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-bg: rgba(255, 255, 255, 0.92);
         }
 
         * {
@@ -23,7 +25,9 @@
         }
 
         body {
-            background: linear-gradient(180deg, #d8e2dc 0%, #fefae0 100%);
+            /* Anime-Sonnenblumen-Hintergrundbild */
+            background: linear-gradient(rgba(240, 245, 240, 0.5), rgba(254, 250, 224, 0.6)), 
+                        url('https://images.unsplash.com/photo-1597848212624-a19eb35e2651?q=80&w=1000&auto=format&fit=crop') center/cover fixed;
             color: var(--text-dark);
             display: flex;
             flex-direction: column;
@@ -37,25 +41,22 @@
             max-width: 500px;
         }
 
-        /* Sanfter Anime-Header */
         header {
-            background: linear-gradient(135deg, #e9c46a, #f4a261);
+            background: rgba(233, 196, 106, 0.9);
+            backdrop-filter: blur(8px);
             color: #2b2d42;
             padding: 20px;
             border-radius: 20px;
             text-align: center;
-            box-shadow: 0 8px 20px rgba(244, 162, 97, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
             margin-bottom: 15px;
             border: 2px solid #ffffff;
         }
 
-        header h1 {
-            font-size: 1.5rem;
-            margin-bottom: 4px;
-        }
+        header h1 { font-size: 1.5rem; margin-bottom: 4px; }
 
         .user-badge {
-            background: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.7);
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 0.8rem;
@@ -64,7 +65,6 @@
             font-weight: 600;
         }
 
-        /* Modal / Onboarding Dialog */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -74,6 +74,7 @@
             justify-content: center;
             z-index: 1000;
             padding: 20px;
+            backdrop-filter: blur(4px);
         }
 
         .modal {
@@ -82,177 +83,55 @@
             border-radius: 20px;
             width: 100%;
             max-width: 420px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
             border: 2px solid #f4a261;
         }
 
-        .modal h2 {
-            color: #e76f51;
-            margin-bottom: 12px;
-            font-size: 1.3rem;
-        }
+        .modal h2 { color: #e76f51; margin-bottom: 12px; font-size: 1.3rem; }
 
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-            color: #2b2d42;
-        }
-
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; }
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid #ccc;
-            font-size: 0.9rem;
+            width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #ccc; font-size: 0.9rem;
         }
 
         .checkbox-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            background: #f0f7f4;
-            padding: 10px;
-            border-radius: 10px;
-        }
-
-        .checkbox-group label {
-            font-weight: normal;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f0f7f4; padding: 10px; border-radius: 10px;
         }
 
         .btn {
-            background: #6b9080;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            font-size: 0.95rem;
-            box-shadow: 0 4px 10px rgba(107, 144, 128, 0.3);
+            background: #6b9080; color: white; border: none; padding: 10px 18px; border-radius: 12px;
+            font-weight: bold; cursor: pointer; width: 100%; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(107, 144, 128, 0.3);
         }
 
-        .btn-admin {
-            background: #e76f51;
-            margin-top: 10px;
-        }
-
-        /* Filter Tabs */
-        .filter-bar {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-
+        .filter-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 15px; }
         .chip {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #e9c46a;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            color: #2b2d42;
-            cursor: pointer;
-            font-weight: 500;
+            background: rgba(255, 255, 255, 0.85); border: 1px solid #e9c46a; padding: 6px 12px;
+            border-radius: 16px; font-size: 0.8rem; white-space: nowrap; color: #2b2d42; cursor: pointer; font-weight: 600;
+            backdrop-filter: blur(4px);
         }
+        .chip.active { background: #f4a261; color: white; border-color: #f4a261; }
 
-        .chip.active {
-            background: #f4a261;
-            color: white;
-            border-color: #f4a261;
-        }
-
-        /* Beiträge Cards */
         .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            border-left: 5px solid #f4a261;
-            backdrop-filter: blur(5px);
+            background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #f4a261; backdrop-filter: blur(8px);
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: #6c757d;
-            margin-bottom: 6px;
-        }
+        .card-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: #6c757d; margin-bottom: 6px; }
+        .card-title { font-size: 1rem; font-weight: bold; color: #2b2d42; margin-bottom: 6px; }
+        .card-body { font-size: 0.88rem; color: #4a4e69; line-height: 1.4; }
 
-        .card-title {
-            font-size: 1rem;
-            font-weight: bold;
-            color: #2b2d42;
-            margin-bottom: 6px;
-        }
-
-        .card-body {
-            font-size: 0.88rem;
-            color: #4a4e69;
-            line-height: 1.4;
-        }
-
-        /* Admin-Verwaltung */
         .admin-panel {
-            background: #fff;
-            border: 2px dashed #e76f51;
-            border-radius: 16px;
-            padding: 15px;
-            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.95); border: 2px dashed #e76f51; border-radius: 16px; padding: 15px; margin-bottom: 15px;
         }
+        .member-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+        .btn-small-danger { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
 
-        .member-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 0.85rem;
-        }
-
-        .btn-small-danger {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.75rem;
-        }
-
-        /* Game Canvas */
         .game-section {
-            background: #fffef7;
-            border-radius: 16px;
-            padding: 12px;
-            margin-top: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            text-align: center;
-            border: 1px solid #e9c46a;
+            background: rgba(255, 254, 247, 0.9); border-radius: 16px; padding: 12px; margin-top: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e9c46a;
         }
-
-        #gameCanvas {
-            background: linear-gradient(180deg, #e0f2fe 0%, #fef3c7 100%);
-            border-radius: 10px;
-            width: 100%;
-            height: 120px;
-            cursor: pointer;
-        }
+        #gameCanvas { background: linear-gradient(180deg, #e0f2fe 0%, #fef3c7 100%); border-radius: 10px; width: 100%; height: 120px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -260,20 +139,17 @@
 <div class="container">
     <header>
         <h1>🌻 Wohnhaus Infoboard</h1>
-        <p>Ghibli-Style Infoseite & Übergabe</p>
+        <p>Echtzeit-Mitteilungen & Übergabe</p>
         <div id="userBadge" class="user-badge">Lädt Profil...</div>
     </header>
 
-    <!-- Admin Panel (nur sichtbar für Admin) -->
     <div id="adminPanel" class="admin-panel" style="display: none;">
-        <h3 style="color: #e76f51; font-size: 0.95rem; margin-bottom: 8px;">⚙️ Admin-Verwaltung: Mitglieder</h3>
+        <h3 style="color: #e76f51; font-size: 0.95rem; margin-bottom: 8px;">⚙️ Admin-Verwaltung: Mitglieder (Echtzeit)</h3>
         <div id="memberList"></div>
     </div>
 
-    <!-- Neuer Beitrag Button -->
-    <button class="btn" style="margin-bottom: 15px;" onclick="togglePostModal(true)">✍️ Neuen Beitrag verfassen</button>
+    <button class="btn" style="margin-bottom: 15px;" onclick="togglePostModal(true)">✍️ Einen Beitrag verfassen</button>
 
-    <!-- Filter -->
     <div class="filter-bar">
         <div class="chip active" onclick="filterPosts('Alle', this)">Alle</div>
         <div class="chip" onclick="filterPosts('WG 1', this)">WG 1</div>
@@ -283,31 +159,24 @@
         <div class="chip" onclick="filterPosts('Haus allgemein', this)">Haus allgemein</div>
     </div>
 
-    <!-- Beiträge Container -->
     <div id="postsContainer"></div>
 
-    <!-- Minispiel -->
     <div class="game-section">
-        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #e76f51;">
-            🎮 Pause? Sonnenblumen-Jump (Tippe auf das Spiel zum Springen)
-        </div>
+        <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; color: #e76f51;">🎮 Pause? Sonnenblumen-Jump</div>
         <canvas id="gameCanvas"></canvas>
     </div>
 </div>
 
-<!-- Modal 1: Onboarding / Erstanmeldung -->
+<!-- Onboarding Modal -->
 <div id="onboardingModal" class="modal-overlay" style="display: none;">
     <div class="modal">
         <h2>🌻 Willkommen im Team!</h2>
-        <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Richte einmalig dein Profil ein, um die Beiträge deines Bereichs zu sehen.</p>
-
         <div class="form-group">
             <label>Dein Vorname:</label>
             <input type="text" id="userNameInput" placeholder="z.B. Anna">
         </div>
-
         <div class="form-group">
-            <label>Deine Bereiche (Multiple Choice):</label>
+            <label>Deine Bereiche:</label>
             <div class="checkbox-group">
                 <label><input type="checkbox" value="WG 1" class="area-check"> WG 1</label>
                 <label><input type="checkbox" value="WG 2" class="area-check"> WG 2</label>
@@ -316,24 +185,21 @@
                 <label><input type="checkbox" value="Haus allgemein" class="area-check"> Haus allgemein</label>
             </div>
         </div>
-
         <div class="form-group">
-            <label>Bist du Admin / Leitung?</label>
-            <input type="password" id="adminPinInput" placeholder="Admin-PIN eingeben (optional)">
-            <small style="font-size: 0.7rem; color: #888;">Standard-PIN für Leitungen: 1234</small>
+            <label>Leitung / Admin PIN:</label>
+            <input type="password" id="adminPinInput" placeholder="PIN (optional)">
         </div>
-
         <button class="btn" onclick="saveProfile()">Profil speichern & Starten</button>
     </div>
 </div>
 
-<!-- Modal 2: Beitrag verfassen -->
+<!-- Post Modal -->
 <div id="postModal" class="modal-overlay" style="display: none;">
     <div class="modal">
         <h2>✍️ Beitrag schreiben</h2>
         <div class="form-group">
-            <label>Titel / Thema:</label>
-            <input type="text" id="postTitle" placeholder="z. B. Dienstplan-Änderung">
+            <label>Titel:</label>
+            <input type="text" id="postTitle">
         </div>
         <div class="form-group">
             <label>Zielbereich:</label>
@@ -348,33 +214,39 @@
         </div>
         <div class="form-group">
             <label>Nachricht:</label>
-            <textarea id="postBody" rows="3" placeholder="Inhalt der Info..."></textarea>
+            <textarea id="postBody" rows="3"></textarea>
         </div>
-        <button class="btn" onclick="createPost()">Beitrag veröffentlichen</button>
-        <button class="btn btn-admin" style="background:#888;" onclick="togglePostModal(false)">Abbrechen</button>
+        <button class="btn" onclick="createPost()">Veröffentlichen</button>
+        <button class="btn" style="background:#888; margin-top:8px;" onclick="togglePostModal(false)">Abbrechen</button>
     </div>
 </div>
 
 <script>
-    // System-Daten & Speicher
-    let currentUser = JSON.parse(localStorage.getItem('sunflower_user')) || null;
-    let posts = JSON.parse(localStorage.getItem('sunflower_posts')) || [
-        { id: 1, title: 'Willkommen in der App!', author: 'System', area: 'Haus allgemein', body: 'Hier findet ihr ab sofort alle Übergaben und Mitteilungen.', date: 'Heute' },
-        { id: 2, title: 'Frühstücks-Vertretung', author: 'Markus', area: 'WG 2', body: 'Präsenzkraft im Urlaub. WG 2 richtet das Frühstück selbst.', date: 'Gestern' }
-    ];
-    let members = JSON.parse(localStorage.getItem('sunflower_members')) || [
-        { name: 'Admin/Leitung', areas: ['Haus allgemein'], status: 'Genehmigt' },
-        { name: 'Test-Nutzer (Außenstehend)', areas: ['WG 1'], status: 'Ausstehend' }
-    ];
+    // DEINE FIREBASE KONFIGURATION:
+    const firebaseConfig = {
+        apiKey: "AIzaSyCq2mjwgIdhmM0Zw2oHxOeyskiR1FBMTrI",
+        authDomain: "sonnenblume-app.firebaseapp.com",
+        projectId: "sonnenblume-app",
+        storageBucket: "sonnenblume-app.firebasestorage.app",
+        messagingSenderId: "1055773198279",
+        appId: "1:1055773198279:web:2a46f5537a533b2cdc7be2"
+    };
 
-    // Initialisierung
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let currentUser = JSON.parse(localStorage.getItem('sunflower_user')) || null;
+    let allPosts = [];
+    let currentFilter = 'Alle';
+
     window.onload = function() {
         if (!currentUser) {
             document.getElementById('onboardingModal').style.display = 'flex';
         } else {
             updateUserUI();
         }
-        renderPosts('Alle');
+        listenToPosts();
+        listenToMembers();
         initGame();
     };
 
@@ -384,17 +256,19 @@
         const checkboxes = document.querySelectorAll('.area-check:checked');
         const selectedAreas = Array.from(checkboxes).map(cb => cb.value);
 
-        if (!name) { alert('Bitte gib deinen Vornamen ein!'); return; }
-        if (selectedAreas.length === 0) { alert('Bitte wähle mindestens einen Bereich aus!'); return; }
-
+        if (!name || selectedAreas.length === 0) { alert('Bitte Name und Bereich angeben!'); return; }
         const isAdmin = (pin === "1234");
 
         currentUser = { name: name, areas: selectedAreas, isAdmin: isAdmin };
         localStorage.setItem('sunflower_user', JSON.stringify(currentUser));
 
-        // In Mitgliederliste eintragen
-        members.push({ name: name, areas: selectedAreas, status: isAdmin ? 'Genehmigt' : 'Ausstehend' });
-        localStorage.setItem('sunflower_members', JSON.stringify(members));
+        // In Online-Datenbank schreiben
+        db.collection("members").add({
+            name: name,
+            areas: selectedAreas,
+            status: isAdmin ? 'Genehmigt' : 'Ausstehend',
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
         document.getElementById('onboardingModal').style.display = 'none';
         updateUserUI();
@@ -402,83 +276,75 @@
 
     function updateUserUI() {
         document.getElementById('userBadge').innerText = `👤 ${currentUser.name} (${currentUser.areas.join(', ')}) ${currentUser.isAdmin ? '⭐ Admin' : ''}`;
-        
-        if (currentUser.isAdmin) {
-            document.getElementById('adminPanel').style.display = 'block';
-            renderAdminMembers();
-        }
+        if (currentUser.isAdmin) { document.getElementById('adminPanel').style.display = 'block'; }
     }
 
-    function renderAdminMembers() {
-        const listDiv = document.getElementById('memberList');
-        listDiv.innerHTML = '';
-        members.forEach((m, index) => {
-            listDiv.innerHTML += `
-                <div class="member-item">
-                    <span><strong>${m.name}</strong> (${m.areas.join(', ')}) - <em>${m.status}</em></span>
-                    <div>
-                        ${m.status === 'Ausstehend' ? `<button class="btn-small-danger" style="background:#6b9080;" onclick="approveMember(${index})">Genehmigen</button>` : ''}
-                        <button class="btn-small-danger" onclick="removeMember(${index})">Entfernen</button>
-                    </div>
-                </div>
-            `;
+    // Live-Updates für Beiträge
+    function listenToPosts() {
+        db.collection("posts").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+            allPosts = [];
+            snapshot.forEach(doc => {
+                allPosts.push({ id: doc.id, ...doc.data() });
+            });
+            renderPosts();
         });
     }
 
-    function approveMember(index) {
-        members[index].status = 'Genehmigt';
-        localStorage.setItem('sunflower_members', JSON.stringify(members));
-        renderAdminMembers();
+    // Live-Updates für Mitglieder (Admin)
+    function listenToMembers() {
+        db.collection("members").onSnapshot(snapshot => {
+            if (!currentUser || !currentUser.isAdmin) return;
+            const listDiv = document.getElementById('memberList');
+            listDiv.innerHTML = '';
+            snapshot.forEach(doc => {
+                const m = doc.data();
+                listDiv.innerHTML += `
+                    <div class="member-item">
+                        <span><strong>${m.name}</strong> (${m.areas ? m.areas.join(', ') : ''})</span>
+                        <div>
+                            <button class="btn-small-danger" onclick="deleteMember('${doc.id}')">Entfernen</button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
     }
 
-    function removeMember(index) {
-        members.splice(index, 1);
-        localStorage.setItem('sunflower_members', JSON.stringify(members));
-        renderAdminMembers();
-    }
+    function deleteMember(id) { db.collection("members").doc(id).delete(); }
 
-    // Beitrage-Logik
-    function togglePostModal(show) {
-        document.getElementById('postModal').style.display = show ? 'flex' : 'none';
-    }
+    function togglePostModal(show) { document.getElementById('postModal').style.display = show ? 'flex' : 'none'; }
 
     function createPost() {
         const title = document.getElementById('postTitle').value.trim();
         const target = document.getElementById('postTarget').value;
         const body = document.getElementById('postBody').value.trim();
 
-        if (!title || !body) { alert('Bitte Titel und Text eingeben!'); return; }
+        if (!title || !body) return;
 
-        const newPost = {
-            id: Date.now(),
+        db.collection("posts").add({
             title: title,
             author: currentUser.name,
             area: target,
             body: body,
-            date: 'Gerade eben'
-        };
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
 
-        posts.unshift(newPost);
-        localStorage.setItem('sunflower_posts', JSON.stringify(posts));
-        renderPosts('Alle');
         togglePostModal(false);
-
         document.getElementById('postTitle').value = '';
         document.getElementById('postBody').value = '';
     }
 
-    function renderPosts(filterArea) {
+    function renderPosts() {
         const container = document.getElementById('postsContainer');
         container.innerHTML = '';
-
-        const filtered = posts.filter(p => filterArea === 'Alle' || p.area === filterArea || p.area === 'Alle');
+        const filtered = allPosts.filter(p => currentFilter === 'Alle' || p.area === currentFilter || p.area === 'Alle');
 
         filtered.forEach(p => {
             container.innerHTML += `
                 <div class="card">
                     <div class="card-header">
                         <span style="font-weight:bold; color:#e76f51;">📌 ${p.area}</span>
-                        <span>${p.date} &bull; von ${p.author}</span>
+                        <span>von ${p.author}</span>
                     </div>
                     <div class="card-title">${p.title}</div>
                     <div class="card-body">${p.body}</div>
@@ -487,97 +353,45 @@
         });
     }
 
-    function filterPosts(area, element) {
+    function filterPosts(area, el) {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        element.classList.add('active');
-        renderPosts(area);
+        el.classList.add('active');
+        currentFilter = area;
+        renderPosts();
     }
 
-    // Minispiel mit echter Kollision & gezieltem Touch
     function initGame() {
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-
-        canvas.width = 400;
-        canvas.height = 120;
-
-        let flowerY = 80;
-        let velocityY = 0;
-        let isJumping = false;
-        let obstacleX = 400;
-        let score = 0;
-        let gameOver = false;
+        canvas.width = 400; canvas.height = 120;
+        let flowerY = 75, velocityY = 0, isJumping = false, obstacleX = 400, score = 0, gameOver = false;
 
         function jump(e) {
-            e.preventDefault(); // Verhindert Scrollen
-            if (gameOver) {
-                // Neustart bei Game Over
-                flowerY = 80; obstacleX = 400; score = 0; gameOver = false;
-                gameLoop();
-                return;
-            }
-            if (!isJumping) {
-                velocityY = -9;
-                isJumping = true;
-            }
+            e.preventDefault();
+            if (gameOver) { flowerY = 75; obstacleX = 400; score = 0; gameOver = false; gameLoop(); return; }
+            if (!isJumping) { velocityY = -9; isJumping = true; }
         }
-
-        // NUR Klicks auf den Canvas auslösen
         canvas.addEventListener("touchstart", jump);
         canvas.addEventListener("mousedown", jump);
 
         function gameLoop() {
             if (gameOver) return;
-
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Boden
-            ctx.fillStyle = "#6b9080";
-            ctx.fillRect(0, 105, canvas.width, 15);
-
-            // Bewegung Spieler
-            flowerY += velocityY;
-            velocityY += 0.5;
-
-            if (flowerY >= 75) {
-                flowerY = 75;
-                isJumping = false;
-            }
-
-            // Zeichne Sonnenblume
-            ctx.font = "24px Arial";
-            ctx.fillText("🌻", 30, flowerY + 20);
-
-            // Bewegung Hindernis
-            obstacleX -= 4;
-            if (obstacleX < -20) {
-                obstacleX = 400;
-                score++;
-            }
-
-            // Zeichne Hindernis
+            ctx.fillStyle = "#6b9080"; ctx.fillRect(0, 105, canvas.width, 15);
+            flowerY += velocityY; velocityY += 0.5;
+            if (flowerY >= 75) { flowerY = 75; isJumping = false; }
+            ctx.font = "24px Arial"; ctx.fillText("🌻", 30, flowerY + 20);
+            obstacleX -= 4; if (obstacleX < -20) { obstacleX = 400; score++; }
             ctx.fillText("🪴", obstacleX, 95);
-
-            // Kollisionsprüfung (Sonnenblume trifft Topf)
             if (obstacleX > 15 && obstacleX < 45 && flowerY > 55) {
-                gameOver = true;
-                ctx.fillStyle = "#e76f51";
-                ctx.font = "bold 16px Arial";
-                ctx.fillText("Game Over! Tippen für Neustart", 80, 60);
-                return;
+                gameOver = true; ctx.fillStyle = "#e76f51"; ctx.font = "bold 16px Arial";
+                ctx.fillText("Game Over! Tippen für Neustart", 80, 60); return;
             }
-
-            // Punktestand
-            ctx.fillStyle = "#2b2d42";
-            ctx.font = "12px Arial";
-            ctx.fillText("Punkte: " + score, 320, 20);
-
+            ctx.fillStyle = "#2b2d42"; ctx.font = "12px Arial"; ctx.fillText("Punkte: " + score, 320, 20);
             requestAnimationFrame(gameLoop);
         }
-
         gameLoop();
     }
 </script>
-
 </body>
 </html>
