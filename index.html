@@ -701,29 +701,45 @@
         renderPosts();
     }
 
-    // --- Highscore System ---
+    // --- Highscore System (Einzigartiger Rekord pro Spieler) ---
     function listenToHighscores() {
-        db.collection("highscores").orderBy("score", "desc").limit(10).onSnapshot(snapshot => {
+        db.collection("highscores").orderBy("score", "desc").limit(50).onSnapshot(snapshot => {
             const listEl = document.getElementById('highscoreList');
             listEl.innerHTML = '';
+            
             if (snapshot.empty) {
                 listEl.innerHTML = '<li style="color:#888; text-align:center;">Noch keine Highscores. Sei der Erste!</li>';
                 return;
             }
-            let rank = 1;
+
+            const uniqueHighscores = [];
+            const seenNames = new Set();
+
+            // Nur den höchsten Score pro Spieler filtern
             snapshot.forEach(doc => {
                 const data = doc.data();
+                if (!seenNames.has(data.name)) {
+                    seenNames.add(data.name);
+                    uniqueHighscores.push({ id: doc.id, ...data });
+                }
+            });
+
+            // Nur die besten 10 einzigartigen Einträge anzeigen
+            const top10 = uniqueHighscores.slice(0, 10);
+
+            let rank = 1;
+            top10.forEach(item => {
                 let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
                 
                 // Admin-Löschen-Button
                 const deleteBtnHtml = currentUser && currentUser.isAdmin ? 
-                    `<button class="btn-delete-score" title="Highscore löschen" onclick="deleteHighscore('${doc.id}')">✕</button>` : '';
+                    `<button class="btn-delete-score" title="Highscore löschen" onclick="deleteHighscore('${item.id}')">✕</button>` : '';
 
                 listEl.innerHTML += `
                     <li class="highscore-item">
                         <span class="highscore-rank">${medal}</span>
-                        <span class="highscore-name">${data.name}</span>
-                        <span class="highscore-score">${data.score} Pkt.</span>
+                        <span class="highscore-name">${item.name}</span>
+                        <span class="highscore-score">${item.score} Pkt.</span>
                         ${deleteBtnHtml}
                     </li>
                 `;
@@ -742,13 +758,38 @@
         }
     }
 
-    function saveHighscore(score) {
+    async function saveHighscore(score) {
         if (!currentUser || score <= 0) return;
-        db.collection("highscores").add({
-            name: currentUser.name,
-            score: score,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
+
+        try {
+            // Prüfen, ob der Spieler bereits einen Highscore hat
+            const querySnapshot = await db.collection("highscores")
+                .where("name", "==", currentUser.name)
+                .get();
+
+            if (!querySnapshot.empty) {
+                // Spieler existiert bereits -> Besten Score suchen
+                const doc = querySnapshot.docs[0];
+                const oldScore = doc.data().score || 0;
+
+                // Nur überschreiben, wenn der neue Score BESSER ist
+                if (score > oldScore) {
+                    await db.collection("highscores").doc(doc.id).update({
+                        score: score,
+                        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            } else {
+                // Neuer Spieler -> Neuen Eintrag anlegen
+                await db.collection("highscores").add({
+                    name: currentUser.name,
+                    score: score,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        } catch (err) {
+            console.error("Fehler beim Speichern des Highscores:", err);
+        }
     }
 
     // --- Anspruchsvolleres Minigame ---
