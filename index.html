@@ -113,7 +113,7 @@
         }
 
         .checkbox-group {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f0f7f4; padding: 10px; border-radius: 10px;
+            display: grid; grid-template-columns: 1fr; gap: 8px; background: #f0f7f4; padding: 10px; border-radius: 10px;
         }
 
         .btn {
@@ -210,13 +210,28 @@
         .highscore-item {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 4px 0;
             border-bottom: 1px dashed #f0f0f0;
         }
         .highscore-item:last-child { border-bottom: none; }
         .highscore-rank { font-weight: bold; width: 24px; }
         .highscore-name { flex-grow: 1; text-align: left; }
-        .highscore-score { font-weight: bold; color: #6b9080; }
+        .highscore-score { font-weight: bold; color: #6b9080; margin-right: 6px; }
+        .btn-delete-score {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 0.65rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
     </style>
 </head>
 <body>
@@ -274,6 +289,7 @@
         <div class="form-group">
             <label>Deine Bereiche:</label>
             <div class="checkbox-group">
+                <label><input type="checkbox" value="Haus Sonnenblume" class="area-check"> 🌻 Sonnenblume (Ganzes Haus)</label>
                 <label><input type="checkbox" value="WG 1" class="area-check"> WG 1</label>
                 <label><input type="checkbox" value="WG 2" class="area-check"> WG 2</label>
                 <label><input type="checkbox" value="WG 3" class="area-check"> WG 3</label>
@@ -297,7 +313,7 @@
         <div class="form-group">
             <label>Zielbereich(e) wählen:</label>
             <div class="checkbox-group">
-                <label><input type="checkbox" value="Haus Sonnenblume" class="post-area-check"> Alle (Haus)</label>
+                <label><input type="checkbox" value="Haus Sonnenblume" class="post-area-check"> 🌻 Sonnenblume (Ganzes Haus)</label>
                 <label><input type="checkbox" value="WG 1" class="post-area-check"> WG 1</label>
                 <label><input type="checkbox" value="WG 2" class="post-area-check"> WG 2</label>
                 <label><input type="checkbox" value="WG 3" class="post-area-check"> WG 3</label>
@@ -634,16 +650,32 @@
             snapshot.forEach(doc => {
                 const data = doc.data();
                 let medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `${rank}.`;
+                
+                // Admin-Löschen-Button
+                const deleteBtnHtml = currentUser && currentUser.isAdmin ? 
+                    `<button class="btn-delete-score" title="Highscore löschen" onclick="deleteHighscore('${doc.id}')">✕</button>` : '';
+
                 listEl.innerHTML += `
                     <li class="highscore-item">
                         <span class="highscore-rank">${medal}</span>
                         <span class="highscore-name">${data.name}</span>
                         <span class="highscore-score">${data.score} Pkt.</span>
+                        ${deleteBtnHtml}
                     </li>
                 `;
                 rank++;
             });
         });
+    }
+
+    async function deleteHighscore(scoreId) {
+        if (confirm("Möchtest du diesen Highscore-Eintrag wirklich aus der Liste entfernen?")) {
+            try {
+                await db.collection("highscores").doc(scoreId).delete();
+            } catch (err) {
+                alert("Fehler beim Löschen des Highscores: " + err.message);
+            }
+        }
     }
 
     function saveHighscore(score) {
