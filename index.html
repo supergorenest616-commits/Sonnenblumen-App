@@ -136,7 +136,16 @@
 
         .card-header { display: flex; justify-content: space-between; font-size: 0.75rem; color: #6c757d; margin-bottom: 6px; }
         .card-body { font-size: 0.88rem; color: #4a4e69; line-height: 1.4; white-space: pre-wrap; }
-        .card-image { width: 100%; border-radius: 10px; margin-top: 10px; max-height: 300px; object-fit: cover; }
+        
+        /* Bildansicht: Vollständig ohne Beschneidung */
+        .card-image { 
+            width: 100%; 
+            border-radius: 10px; 
+            margin-top: 10px; 
+            height: auto; 
+            object-fit: contain; 
+            display: block;
+        }
 
         .admin-panel {
             background: rgba(255, 255, 255, 0.95); border: 2px dashed #e76f51; border-radius: 16px; padding: 15px; margin-bottom: 15px;
@@ -374,7 +383,7 @@
     function togglePostModal(show) { document.getElementById('postModal').style.display = show ? 'flex' : 'none'; }
 
     // Automatische Bild-Komprimierung vor dem Absenden
-    function compressImage(file, maxWidth = 600, quality = 0.6) {
+    function compressImage(file, maxWidth = 800, quality = 0.6) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
